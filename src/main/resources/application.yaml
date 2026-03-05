@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: api-gateway
+  profiles:
+    active: local
+server:
+  port: 8088
+jwt:
+  secret: ${JWT_SECRET}
+
+
+
