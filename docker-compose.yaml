@@ -1,0 +1,141 @@
+version: '3.9'
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8088:8088"
+    depends_on:
+      - user-service
+      - order-service
+      - auth-service
+    networks:
+      - microservices-network
+
+  user-service:
+    image: ilyutsik/userservice:main-latest
+    container_name: user-service
+    environment:
+      DB_HOST: user-service-db
+      DB_PORT: 5432
+      DB_NAME: ${USER_DB_NAME:-userdb}
+      DB_USERNAME: ${USER_DB_USERNAME:-user}
+      DB_PASSWORD: ${USER_DB_PASSWORD:-password}
+      REDIS_HOST: user-service-redis
+      REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service-db
+      - user-service-redis
+    networks:
+      - microservices-network
+
+  user-service-db:
+    image: postgres:14
+    container_name: user-service-db
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${USER_DB_USERNAME:-user}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-password}
+      POSTGRES_DB: ${USER_DB_NAME:-userdb}
+    volumes:
+      - user_postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  user-service-redis:
+    image: redis:7
+    container_name: user-service-redis
+    restart: always
+    ports:
+      - "6380:6379"
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - user_redis_data:/data
+    networks:
+      - microservices-network
+
+  order-service:
+    image: ilyutsik/orderservice:main-latest
+    container_name: order-service
+    environment:
+      DB_HOST: order-service-db
+      DB_PORT: 5432
+      DB_NAME: ${ORDER_DB_NAME:-orderdb}
+      DB_USERNAME: ${ORDER_DB_USERNAME:-order}
+      DB_PASSWORD: ${ORDER_DB_PASSWORD:-password}
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8081:8081"
+    depends_on:
+      - order-service-db
+    networks:
+      - microservices-network
+
+  order-service-db:
+    image: postgres:14
+    container_name: order-service-db
+    restart: always
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: ${ORDER_DB_USERNAME:-order}
+      POSTGRES_PASSWORD: ${ORDER_DB_PASSWORD:-password}
+      POSTGRES_DB: ${ORDER_DB_NAME:-orderdb}
+    volumes:
+      - order_postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  auth-service:
+    image: ilyutsik/authservice:main-latest
+    container_name: auth-service
+    environment:
+      DB_HOST: auth-service-db
+      DB_PORT: 5432
+      DB_NAME: ${AUTH_DB_NAME:-authdb}
+      DB_USERNAME: ${AUTH_DB_USERNAME:-auth}
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-password}
+      JWT_SECRET: ${JWT_SECRET:-mySecretKey}
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8082:8082"
+    depends_on:
+      - auth-service-db
+    networks:
+      - microservices-network
+
+  auth-service-db:
+    image: postgres:14
+    container_name: auth-service-db
+    restart: always
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USERNAME:-auth}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-password}
+      POSTGRES_DB: ${AUTH_DB_NAME:-authdb}
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  user_postgres_data:
+  user_redis_data:
+  order_postgres_data:
+  auth_postgres_data:
