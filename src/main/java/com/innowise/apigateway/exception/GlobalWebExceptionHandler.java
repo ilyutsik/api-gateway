@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import feign.FeignException;
 import io.jsonwebtoken.JwtException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -49,6 +50,9 @@ public class GlobalWebExceptionHandler implements WebExceptionHandler {
     }
     if (ex instanceof ResponseStatusException responseStatusException) {
       return HttpStatus.valueOf(responseStatusException.getStatusCode().value());
+    }
+    if (ex instanceof FeignException feignEx) {
+      return HttpStatus.valueOf(feignEx.status());
     }
     return HttpStatus.INTERNAL_SERVER_ERROR;
   }
