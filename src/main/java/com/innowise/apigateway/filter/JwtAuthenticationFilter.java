@@ -22,7 +22,11 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
-  private static final List<String> EXCLUDED_PATHS = List.of("/login", "/register");
+  private static final List<String> EXCLUDED_PATHS = List.of(
+      "/login",
+      "/register",
+      "/swagger-ui/**",
+      "/v3/api-docs/**");
 
   @Value("${jwt.secret}")
   private String secret;

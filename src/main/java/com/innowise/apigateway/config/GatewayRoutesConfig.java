@@ -17,8 +17,12 @@ public class GatewayRoutesConfig {
   @Value("${order.service.url}")
   private String orderServiceUrl;
 
+  @Value("${payment.service.url}")
+  private String paymentServiceUrl;
+
   @Value("${auth.service.url}")
   private String authServiceUrl;
+
 
   @Bean
   public RouteLocator myRoutes(RouteLocatorBuilder builder) {
@@ -37,6 +41,20 @@ public class GatewayRoutesConfig {
             path("/users/**", "/cards/**").
             filters(f -> f.prefixPath(API_PREFIX))
             .uri(userServiceUrl))
+
+        .route("payment-service", p -> p.
+            path("/payments/**")
+            .filters( f -> f.prefixPath(API_PREFIX))
+            .uri(paymentServiceUrl)
+        )
+        .route("payment-service-docs", r -> r
+            .path("/v3/api-docs/payment")
+            .filters(f -> f
+                .rewritePath("/v3/api-docs/payment", "/v3/api-docs")
+            )
+            .uri(paymentServiceUrl)
+        )
+
         .build();
   }
 }

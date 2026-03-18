@@ -17,3 +17,6 @@ auth:
 order:
   service:
     url: ${ORDER_SERVICE_URI}
+payment:
+  service:
+    url: ${PAYMENT_SERVICE_URI}
