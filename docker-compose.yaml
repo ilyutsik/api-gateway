@@ -20,6 +20,7 @@ services:
       - user-service
       - order-service
       - auth-service
+      - payment-service
     networks:
       - microservices-network
 
